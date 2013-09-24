@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use YAML::Tiny;
+use App::Ticker;
+
+my $configfile = $ARGV[0] || "$ENV{HOME}/.tickerrc";
+
+my $config = YAML::Tiny->read($configfile);
+
+unless ($config) {
+	die YAML::Tiny->errstr . "\n";
+}
+
+$config = $config->[0];
+
+my $ticker = App::Ticker->new($config);
+
+$ticker->run();
+
+

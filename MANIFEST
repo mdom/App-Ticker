@@ -1,0 +1,14 @@
+bin/ticker
+Build.PL
+lib/App/Ticker.pm
+lib/App/Ticker/Item.pm
+lib/App/Ticker/Plugin.pm
+lib/App/Ticker/Plugin/FullContent.pm
+lib/App/Ticker/Plugin/GetFeeds.pm
+lib/App/Ticker/Plugin/HTTPCache.pm
+lib/App/Ticker/Plugin/InlineImages.pm
+lib/App/Ticker/Plugin/SendMail.pm
+lib/App/Ticker/Plugin/SkipSeen.pm
+lib/App/Ticker/Role/FetchURL.pm
+lib/App/Ticker/Plugin/AddBacklink.pm
+MANIFEST			This list of files
