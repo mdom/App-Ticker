@@ -8,6 +8,7 @@ use List::MoreUtils qw(uniq);
 
 has 'feeds' => (
 	is => 'rw',
+	required => 1,
 );
 
 sub process_item {
