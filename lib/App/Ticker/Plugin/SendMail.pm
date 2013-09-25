@@ -7,6 +7,7 @@ with 'App::Ticker::Role::FetchURL';
 use Encode;
 use MIME::Lite;
 use Mojo::ByteStream 'b';
+use Mojo::Util 'html_unescape';
 
 has send_mail_to            => ( is => 'rw' );
 has send_mail_from          => ( is => 'rw' );
@@ -19,7 +20,7 @@ sub process_item {
         From =>
           sprintf( '"%s" <%s>', $item->feed->title, $self->send_mail_from ),
         To      => $self->send_mail_to,
-        Subject => encode( 'MIME-Header', $item->title ),
+        Subject => encode_subject($item->title ),
         Type    => 'multipart/related',
     );
 
@@ -43,5 +44,9 @@ sub process_item {
     }
     return;
 };
+
+sub encode_subject {
+    return encode( 'MIME-Q', html_unescape( $_[0] ) );
+}
 
 1;
