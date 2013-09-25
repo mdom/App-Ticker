@@ -71,9 +71,9 @@ sub resolve_link {
     );
     for my $element ( $dom->find( join( ',', keys %types ) )->each ) {
         my $attr = $types{ $element->type };
-        my $url  = Mojo::URL->new( $element->attrs($attr) );
+        my $url  = Mojo::URL->new( $element->attr($attr) );
         next if $url->is_abs;
-        $element->attrs( $attr => $url->base($base)->to_abs );
+        $element->attr( $attr => $url->base($base)->to_abs );
     }
     return $dom->to_xml;
 }

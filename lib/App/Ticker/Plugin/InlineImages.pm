@@ -22,10 +22,10 @@ sub process_item {
     $dom->find('img[src]')->each(
         sub {
             my $node = shift;
-            my $url  = $node->attrs('src');
+            my $url  = $node->attr('src');
             if ( my $res = $self->download_image($url) ) {
                 my $mime = $res->headers->content_type;
-                $node->attrs( src => "data:$mime;base64,".b($res->body)->b64_encode());
+                $node->attr( src => "data:$mime;base64,".b($res->body)->b64_encode());
             }
             return;
         }
