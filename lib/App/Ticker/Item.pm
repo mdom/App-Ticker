@@ -24,8 +24,6 @@ has feed => (
     is => 'ro',
 );
 
-has options => ( is => 'rw', default => sub {{}} );
-
 sub _build_body {
     my $self = shift;
     return $self->get('content:encoded') || $self->description();

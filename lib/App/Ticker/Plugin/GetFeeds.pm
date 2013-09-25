@@ -7,42 +7,29 @@ with 'App::Ticker::Role::FetchURL';
 use Mojo::ByteStream 'b';
 use XML::FeedPP;
 
-has 'feeds' => (
-	is => 'ro',
-);
+has 'feeds' => ( is => 'ro', );
 
 sub run {
-	my ($self) = @_;
-	push @{$self->items}, $self->get_feeds();
+    my ($self) = @_;
+    push @{ $self->items }, $self->get_feeds();
 }
 
 sub get_feeds {
     my $self = shift;
     my @items;
-    for my $feed_spec ( @{ $self->feeds } ) {
-        my ($options);
-        if ( ref($feed_spec) eq 'HASH' ) {
-            $options = $feed_spec;
-        }
-        else {
-            $options = { url => $feed_spec };
-        }
-
-        my ($feed) = $self->get_feed( $options->{url} );
-        if ($feed) {
-	    $feed->link($options->{url});
+    for my $url ( @{ $self->feeds } ) {
+        if ( my ($feed) = $self->get_feed($url) ) {
+            $feed->link($url);
             for my $item ( $feed->get_item() ) {
-                my $feed_spec = {};
                 push @items,
                   App::Ticker::Item->new(
-                    item    => $item,
-                    feed    => $feed,
-                    options => {},
+                    item => $item,
+                    feed => $feed,
                   );
             }
         }
+        return @items;
     }
-    return @items;
 }
 
 sub get_feed {
