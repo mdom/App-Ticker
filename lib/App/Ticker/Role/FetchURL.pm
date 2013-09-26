@@ -1,5 +1,6 @@
 package App::Ticker::Role::FetchURL;
 use Moo::Role;
+use Mojo::UserAgent;
 
 has 'ua' => (
     is      => 'lazy',
