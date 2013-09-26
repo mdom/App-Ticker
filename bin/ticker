@@ -13,10 +13,9 @@ unless ($config) {
 	die YAML::Tiny->errstr . "\n";
 }
 
-$config = $config->[0];
+for my $config ( @$config ) {
+	my $ticker = App::Ticker->new($config);
+	$ticker->run();
+}
 
-my $ticker = App::Ticker->new($config);
-
-$ticker->run();
-
-
+exit 0;
