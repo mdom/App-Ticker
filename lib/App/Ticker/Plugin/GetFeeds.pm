@@ -28,8 +28,8 @@ sub get_feeds {
                   );
             }
         }
-        return @items;
     }
+    return @items;
 }
 
 sub get_feed {
