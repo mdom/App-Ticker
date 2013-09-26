@@ -8,10 +8,11 @@ use Scalar::Util qw(blessed);
 our $VERSION = '0.01';
 
 has items => ( is => 'rw', default => sub { [] } );
-has filter =>
-  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Filter::' ) } );
+
 has input =>
   ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Input::' ) } );
+has filter =>
+  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Filter::' ) } );
 has output =>
   ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Output::' ) } );
 
