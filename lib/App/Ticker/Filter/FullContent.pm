@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::FullContent;
+package App::Ticker::Filter::FullContent;
 use Moo;
 extends 'App::Ticker::Plugin';
 with 'App::Ticker::Role::FetchURL';

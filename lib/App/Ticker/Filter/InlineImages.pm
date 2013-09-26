@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::InlineImages;
+package App::Ticker::Filter::InlineImages;
 use Moo;
 extends 'App::Ticker::Plugin';
 with 'App::Ticker::Role::FetchURL';

@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::GetFeeds;
+package App::Ticker::Input::GetFeeds;
 
 use Moo;
 extends 'App::Ticker::Plugin';

@@ -1,7 +1,7 @@
 package App::Ticker::Plugin;
 use Moo;
 
-has 'items' => ( is => 'rw', required => 1 );
+has 'items' => ( is => 'rw');
 
 sub run {
     my $self = shift;

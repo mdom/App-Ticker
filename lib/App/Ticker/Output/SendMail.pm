@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::SendMail;
+package App::Ticker::Output::SendMail;
 
 use Moo;
 extends 'App::Ticker::Plugin';

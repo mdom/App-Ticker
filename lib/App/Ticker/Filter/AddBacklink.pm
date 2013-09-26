@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::AddBacklink;
+package App::Ticker::Filter::AddBacklink;
 use Moo;
 extends 'App::Ticker::Plugin';
 

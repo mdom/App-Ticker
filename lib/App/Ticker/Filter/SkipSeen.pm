@@ -1,4 +1,4 @@
-package App::Ticker::Plugin::SkipSeen;
+package App::Ticker::Filter::SkipSeen;
 
 use Moo;
 extends 'App::Ticker::Plugin';
