@@ -44,6 +44,11 @@ sub coerce_to {
     return \@list;
 }
 
+sub plugins {
+	my $self = shift;
+	return @{ $self->input }, @{ $self->filter },@{ $self->output };
+}
+
 sub run {
     my $self = shift;
 
@@ -53,7 +58,7 @@ sub run {
     chdir($workdir)
       or die "Can't chdir to " . $workdir . "\n";
 
-    for my $plugin ( @{ $self->plugins } ) {
+    for my $plugin ( $self->plugins ) {
         $plugin->items( $self->items );
         $plugin->run();
     }
