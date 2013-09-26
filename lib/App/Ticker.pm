@@ -18,7 +18,7 @@ has workdir => (
 sub BUILD {
     my $self = shift;
     for my $plugin ( @{ $self->plugins } ) {
-        next if blessed($plugin) && $plugin->isa('App::Ticker::Plugin');
+        next if blessed($plugin);
 
         my ($options,$class);
         if ( ref($plugin) eq 'HASH' ) {
