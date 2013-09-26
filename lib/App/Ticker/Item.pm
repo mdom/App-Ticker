@@ -6,7 +6,7 @@ use Moo;
 has item => (
     is      => 'ro',
     handles => [
-        qw(get description title link guid set pubDate copyright language image)
+        qw(get description title link guid set copyright language image)
     ]
 );
 
@@ -23,6 +23,14 @@ has id => (
 has feed => (
     is => 'ro',
 );
+
+sub pubDate {
+	my $self = shift;
+	if ( not @_ and not $self->item->pubDate ) {
+		$self->item->pubDate(time);
+	}
+	return $self->item->pubDate(@_);
+}
 
 sub _build_body {
     my $self = shift;
