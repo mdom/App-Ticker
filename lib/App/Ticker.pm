@@ -1,12 +1,8 @@
 package App::Ticker;
 use Moo;
 
-use Mojo::ByteStream 'b';
-use Mojo::UserAgent;
-use XML::FeedPP;
 use App::Ticker::Item;
 use Path::Tiny;
-use Try::Tiny;
 use Scalar::Util qw(blessed);
 
 our $VERSION = '0.01';
@@ -17,19 +13,14 @@ has plugins => ( is => 'rw' );
 has workdir => (
     is      => 'rw',
     default => sub { path( $ENV{HOME} )->child(".ticker") },
-    # coerce  => sub {
-    #   $_[0] = path( $_[0] ) if !ref( $_[0] );
-    #},
 );
 
 sub BUILD {
     my $self = shift;
     for my $plugin ( @{ $self->plugins } ) {
-        # FIXME add coercion via Type::Tiny
         next if blessed($plugin) && $plugin->isa('App::Ticker::Plugin');
 
-        my $options = {};
-	my $class;
+        my ($options,$class);
         if ( ref($plugin) eq 'HASH' ) {
             $class   = ( keys %$plugin )[0];
             $options = $plugin->{$class};
