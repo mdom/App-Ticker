@@ -30,7 +30,7 @@ sub seen {
 	$workdir->mkpath();
 	my $file = $workdir->child($sha1);
 	my $seen = $file->exists;
-	$file->touchpath();
+	$file->touchpath() if not $seen;
 	return $seen;
 };
 
