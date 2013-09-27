@@ -10,11 +10,11 @@ our $VERSION = '0.01';
 has items => ( is => 'rw', default => sub { [] } );
 
 has input =>
-  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Input::' ) } );
+  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Input::' ) }, default => sub {[]} );
 has filter =>
-  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Filter::' ) } );
+  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Filter::' ) }, default => sub {[]} );
 has output =>
-  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Output::' ) } );
+  ( is => 'rw', coerce => sub { coerce_to( $_[0], 'App::Ticker::Output::' ) }, default => sub {[]} );
 
 has workdir => (
     is      => 'rw',
