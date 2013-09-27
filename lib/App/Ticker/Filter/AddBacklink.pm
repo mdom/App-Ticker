@@ -10,7 +10,6 @@ has text => (
 sub process_item {
 	my ($self,$item) = @_;
 	my $backlink = sprintf('<div><a href="%s">%s</a></div>',$item->link,$self->text);
-$DB::single=1;
 	$item->body($item->body . $backlink);
 
 	return;
