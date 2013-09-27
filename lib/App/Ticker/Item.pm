@@ -2,12 +2,11 @@ package App::Ticker::Item;
 use strict;
 use warnings;
 use Moo;
+use XML::TreePP;
 
 has item => (
     is      => 'ro',
-    handles => [
-        qw(get description title link guid set copyright language image)
-    ]
+    handles => [qw(get title link guid set copyright language image)]
 );
 
 has body => (
@@ -16,20 +15,30 @@ has body => (
     builder => '_build_body',
 );
 
-has id => (
-    is   => 'lazy',
-);
+has id => ( is => 'lazy', );
 
-has feed => (
-    is => 'ro',
-);
+has feed => ( is => 'ro', );
 
 sub pubDate {
-	my $self = shift;
-	if ( not @_ and not $self->item->pubDate ) {
-		$self->item->pubDate(time);
-	}
-	return $self->item->pubDate(@_);
+    my $self = shift;
+    if ( not @_ and not $self->item->pubDate ) {
+        $self->item->pubDate(time);
+    }
+    return $self->item->pubDate(@_);
+}
+
+sub description {
+    my $self = shift;
+
+    return $self->item->description(@_) if @_;
+
+    # see https://rt.cpan.org/Public/Bug/Display.html?id=67268
+    my $description = $self->item->description || '';
+    if ( ref($description) eq 'HASH' ) {
+        my $tpp = XML::TreePP->new( xml_decl => '' );
+        $description =  $tpp->write($description);
+    }
+    return $description;
 }
 
 sub _build_body {
