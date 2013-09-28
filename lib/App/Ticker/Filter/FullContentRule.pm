@@ -1,73 +1,113 @@
 package App::Ticker::Filter::FullContentRule;
 use Moo;
 extends 'App::Ticker::Plugin';
-use App::Ticker::Filter::FullContentRule::Rule;
-use Path::Tiny;
+with 'App::Ticker::Role::DomainRule', 'App::Ticker::Role::FetchURL';
 
-has rules => (
-    is      => 'rw',
-    default => sub { {} },
-    coerce  => sub {
-        my $arg = shift;
-        if ( ref($arg) eq 'HASH' ) {
-            my %rules;
-            for my $domain ( keys %$arg ) {
-                $rules{$domain} = App::Ticker::Filter::FullContentRule::Rule->new( $arg->{$domain} );
-            }
-            return \%rules;
-        }
-	else {
-		die "rules has to be an hash reference\n";
-	}
-    }
-);
-
-has 'rule_dir' => (
-    is      => 'rw',
-    default => 'ftr-site-config',
-    coerce  => sub {
-        ref( $_[0] ) or path( $_[0] );
-    }
-);
-
-sub get_rule {
-    my ( $self, $url ) = @_;
-    my $host     = Mojo::URL->new($url)->host;
-    my @segments = ($host);
-    my @parts    = split( /\./, $host );
-    shift @parts;
-    while ( @parts > 1 ) {
-        push @segments, join( '.', @parts );
-        shift @parts;
-    }
-    my $rule_file;
-    for my $segment (@segments) {
-        if ( exists $self->rules->{$segment} ) {
-            return $self->rules->{$segment};
-        }
-    }
-
-    for my $segment (@segments) {
-        my $file = $self->rule_dir->child("$segment.txt");
-        if ( $file->exists ) {
-            $rule_file = $file;
-            last;
-        }
-    }
-    return if !$rule_file;
-    my $yaml = YAML::Tiny->rean($rule_file);
-    return if !$yaml;
-    $self->rules->{ $rule_file->basename } = $yaml->[0];
-    return $yaml->[0];
-}
+use Mojo::URL;
+use Mojo::DOM;
 
 sub process_item {
     my ( $self, $item ) = @_;
-    my $url = $item->link;
-    my $rule = $self->get_rule($url);
-    my $content = $rule->apply($url);
-    $item->body($content);
+    my $rule = $self->get_rule($item);
+    return if !$rule;
+    return if ! exists $rule->{body};
+
+    my $url  = $item->link;
+    my $tx = $self->ua->get($url);
+    if ( my $res = $tx->success ) {
+
+        my $dom = $res->dom;
+        my $html;
+        if ( exists $rule->{single_page_link} ) {
+            $html = $self->get_single_page($dom,$rule);
+        }
+        elsif ( exists $rule->{next_page_link } ) {
+            $html = $self->get_single_page($dom,$rule);
+
+        }
+        else {
+            $html = $self->get_body($dom,$rule);
+
+        }
+
+        $html = $self->resolve_link( $html, $tx->req->url );
+        $item->body($html);
+    }
     return;
+}
+
+sub get_multi_page {
+    my ( $self, $dom, $rule ) = @_;
+    my @doms;
+    while ( my $url = $self->get_multi_page_link($dom,$rule) ) {
+        my $tx = $self->ua->get($url);
+        if ( my $res = $tx->success ) {
+            $dom = $res->dom;
+            my $html = $self->get_body($dom,$rule);
+            push @doms, $html;
+        }
+    }
+    return join( '', @doms );
+}
+
+sub get_multi_page_link {
+    my ( $self, $dom, $rule ) = @_;
+    my $url;
+    for my $selector ( @{ $rule->{next_page_link} } ) {
+        my $link = $dom->at($selector);
+        next if !$link;
+        my $url = $link->attr('href');
+        last if $url;
+    }
+    return $url;
+}
+
+sub get_single_page {
+    my ( $self, $dom,$rule ) = @_;
+    my $url;
+    for my $selector ( @{ $rule->{single_page_link} } ) {
+        my $link = $dom->at($selector);
+        $url = $link->attr('href');
+        last if $url;
+    }
+    if ($url) {
+        my $tx = $self->ua->get($url);
+        if ( my $res = $tx->success ) {
+            return $self->get_body($dom,$rule);
+        }
+    }
+    return;
+}
+
+sub get_body {
+    my ( $self, $dom, $rule ) = @_;
+    if ( @{ $rule->{body} } ) {
+        for my $body ( @{ $rule->{body} } ) {
+            my $collection = $dom->find($body);
+            if ($collection) {
+                $dom = Mojo::DOM->new( $collection->join('')->to_string );
+                last;
+            }
+        }
+    }
+    return $dom->to_xml;
+}
+
+sub resolve_link {
+    my ( $self, $html, $base ) = @_;
+    $base = Mojo::URL->new($base);
+    my $dom   = Mojo::DOM->new($html);
+    my %types = (
+        a   => 'href',
+        img => 'src',
+    );
+    for my $element ( $dom->find( join( ',', keys %types ) )->each ) {
+        my $attr = $types{ $element->type };
+        my $url  = Mojo::URL->new( $element->attr($attr) );
+        next if $url->is_abs;
+        $element->attr( $attr => $url->base($base)->to_abs );
+    }
+    return $dom->to_xml;
 }
 
 1;
