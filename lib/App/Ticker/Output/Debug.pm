@@ -5,7 +5,7 @@ use Mojo::ByteStream 'b';
 
 sub process_item {
 	my ($self,$item) = @_;
-	print b($item->title)->encode . " " . $item->pubDate . " " . b($item->id)->sha1_sum . "\n";
+	print b($item->body)->encode . "\n";
 	return;
 }
 
