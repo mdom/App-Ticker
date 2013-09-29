@@ -5,6 +5,9 @@ use App::Ticker::Item;
 use Path::Tiny;
 use Scalar::Util qw(blessed);
 
+use EV;
+use AnyEvent;
+
 our $VERSION = '0.01';
 
 has items => ( is => 'rw', default => sub { [] } );
@@ -59,11 +62,31 @@ sub run {
     chdir($workdir)
       or die "Can't chdir to " . $workdir . "\n";
 
-    for my $plugin ( $self->plugins ) {
-        $plugin->items( $self->items );
-        $plugin->run();
+    my $cv = AnyEvent->condvar;
+
+    for my $plugin ( @{ $self->input } ) {
+	my $cb_factory = $self->filter_callback($cv);
+        $plugin->run($cb_factory);
     }
+    $cv->recv;
     return;
+}
+
+sub filter_callback {
+	my ($self,$cv) = @_;
+	return sub {
+		my @filter = (@{ $self->filter },@{ $self->output } );
+		$cv->begin;
+		my $cb; $cb = sub {
+			my $item = shift;
+$DB::single = 1;
+			my $plugin = shift @filter;
+			if ( !@filter ) {
+				$cb = sub { $cv->end };
+			}
+			$plugin->process_item($item,$cb);	
+		};
+	};
 }
 
 1;

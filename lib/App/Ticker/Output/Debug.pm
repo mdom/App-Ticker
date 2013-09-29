@@ -4,8 +4,9 @@ extends 'App::Ticker::Plugin';
 use Mojo::ByteStream 'b';
 
 sub process_item {
-	my ($self,$item) = @_;
+	my ($self,$item,$cb) = @_;
 	print b($item->body)->encode . "\n";
+	$cb->($item);
 	return;
 }
 

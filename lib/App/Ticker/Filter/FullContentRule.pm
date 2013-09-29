@@ -7,47 +7,63 @@ use Mojo::URL;
 use Mojo::DOM;
 
 sub process_item {
-    my ( $self, $item ) = @_;
+    my ( $self, $item, $cb ) = @_;
     my $rule = $self->get_rule($item);
     return if !$rule;
-    return if ! exists $rule->{body};
+    return if !exists $rule->{body};
 
-    my $url  = $item->link;
-    my $tx = $self->ua->get($url);
-    if ( my $res = $tx->success ) {
+    my $url = $item->link;
+    $self->ua->get(
+        $url,
+        sub {
+            my ( $ua, $tx ) = @_;
 
-        my $dom = $res->dom;
-        my $html;
-        if ( exists $rule->{single_page_link} ) {
-            $html = $self->get_single_page($dom,$rule);
+            if ( my $res = $tx->success ) {
+
+                my $dom = $res->dom;
+                my $html;
+                if ( exists $rule->{single_page_link} ) {
+                    $self->get_single_page( $dom, $rule, $item, $cb );
+                }
+                elsif ( exists $rule->{next_page_link} ) {
+                    $self->get_multi_page( $dom, $rule, $item, $cb );
+
+                }
+                else {
+                    my $body = $self->get_body( $dom, $rule, $item );
+                    $item->body($body);
+                    $cb->($item);
+
+                }
+
+                #$html = $self->resolve_link( $html, $tx->req->url );
+                #$item->body($html);
+            }
         }
-        elsif ( exists $rule->{next_page_link } ) {
-            $html = $self->get_single_page($dom,$rule);
-
-        }
-        else {
-            $html = $self->get_body($dom,$rule);
-
-        }
-
-        $html = $self->resolve_link( $html, $tx->req->url );
-        $item->body($html);
-    }
+    );
     return;
 }
 
 sub get_multi_page {
-    my ( $self, $dom, $rule ) = @_;
-    my @doms;
-    while ( my $url = $self->get_multi_page_link($dom,$rule) ) {
-        my $tx = $self->ua->get($url);
-        if ( my $res = $tx->success ) {
-            $dom = $res->dom;
-            my $html = $self->get_body($dom,$rule);
-            push @doms, $html;
-        }
+    my ( $self, $dom, $rule, $item, $cb ) = @_;
+    if ( my $url = $self->get_multi_page_link( $dom, $rule ) ) {
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    $dom = $res->dom;
+                    my $body = $self->get_body( $dom, $rule );
+                    $item->body( $item->body . $body );
+                    $self->get_multi_page( $dom, $rule, $item, $cb );
+                }
+            }
+        );
     }
-    return join( '', @doms );
+    else {
+        $cb->($item);
+    }
+    return;
 }
 
 sub get_multi_page_link {
@@ -63,7 +79,7 @@ sub get_multi_page_link {
 }
 
 sub get_single_page {
-    my ( $self, $dom,$rule ) = @_;
+    my ( $self, $dom, $rule, $item, $cb ) = @_;
     my $url;
     for my $selector ( @{ $rule->{single_page_link} } ) {
         my $link = $dom->at($selector);
@@ -71,10 +87,21 @@ sub get_single_page {
         last if $url;
     }
     if ($url) {
-        my $tx = $self->ua->get($url);
-        if ( my $res = $tx->success ) {
-            return $self->get_body($dom,$rule);
-        }
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    my $body = $self->get_body( $dom, $rule );
+                    $item->body($body);
+                    $cb->($item);
+                }
+                return;
+            }
+        );
+    }
+    else {
+        $cb->($item);
     }
     return;
 }
