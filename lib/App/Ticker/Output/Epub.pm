@@ -13,8 +13,7 @@ sub run {
 	my ($self) = @_;
 	my @items = sort { $a->pubDate cmp $b->pubDate } @{$self->items};
 	for my $item ( @items ) {
-		#$item->body(b($item->body)->encode);
-		#$item->title(b($item->title)->encode);
+		$item->body(Mojo::DOM->new($item->body)->to_xml);
 	}
 	my @chapters;
 	while (@items) {
