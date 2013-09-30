@@ -10,13 +10,9 @@ use XML::FeedPP;
 has 'feeds' => ( is => 'ro', );
 
 sub run {
-    my ( $self, $cb_factory ) = @_;
-    $self->get_feeds($cb_factory);
-}
-
-sub get_feeds {
-    my ( $self, $cb_factory ) = @_;
+    my ( $self, $cv, $cb_factory ) = @_;
     for my $url ( @{ $self->feeds } ) {
+        $cv->begin;
         $self->get_url(
             $url,
             sub {
@@ -35,6 +31,7 @@ sub get_feeds {
                         }
                     }
                 }
+		$cv->end;
             }
         );
     }

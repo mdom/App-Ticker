@@ -61,7 +61,7 @@ sub run {
 
     for my $plugin ( @{ $self->input } ) {
 	my $cb_factory = $self->filter_callback($cv);
-        $plugin->run($cb_factory);
+        $plugin->run($cv,$cb_factory);
     }
     $cv->recv;
     return;
