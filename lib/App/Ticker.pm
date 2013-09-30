@@ -79,7 +79,6 @@ sub filter_callback {
 		$cv->begin;
 		my $cb; $cb = sub {
 			my $item = shift;
-$DB::single = 1;
 			my $plugin = shift @filter;
 			if ( !@filter ) {
 				$cb = sub { $cv->end };
