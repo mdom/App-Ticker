@@ -48,11 +48,6 @@ sub coerce_to {
     return \@list;
 }
 
-sub plugins {
-	my $self = shift;
-	return @{ $self->input }, @{ $self->filter },@{ $self->output };
-}
-
 sub run {
     my $self = shift;
 
