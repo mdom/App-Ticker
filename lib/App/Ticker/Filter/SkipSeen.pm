@@ -22,6 +22,9 @@ sub process_item {
 		$file->touchpath();
 		$cb->($item);
 	}
+	else {
+		$cb->();
+	}
 	return;
 }
 
