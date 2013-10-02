@@ -14,7 +14,7 @@ has send_mail_from          => ( is => 'rw' );
 has debug => ( is => 'rw', default => 0 );
 
 sub process_item {
-    my ( $self, $item ) = @_;
+    my ( $self, $item, $cb ) = @_;
 
     my $msg = MIME::Lite->new(
         From =>
@@ -42,6 +42,7 @@ sub process_item {
     } else {
 	    $msg->send();
     }
+    $cb->($item);
     return;
 };
 
