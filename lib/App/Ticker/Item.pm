@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Moo;
 use XML::TreePP;
+use Mojo::ByteStream 'b';
 
 has item => (
     is      => 'ro',
@@ -25,6 +26,10 @@ sub pubDate {
         $self->item->pubDate(time);
     }
     return $self->item->pubDate(@_);
+}
+
+sub safe_id {
+	return b($_[0])->sha1_sum;
 }
 
 sub description {
