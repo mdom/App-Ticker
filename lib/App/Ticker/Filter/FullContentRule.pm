@@ -9,38 +9,34 @@ use Mojo::DOM;
 sub process_item {
     my ( $self, $item, $cb ) = @_;
     my $rule = $self->get_rule($item);
-    return if !$rule;
-    return if !exists $rule->{body};
+    if ( $rule and exists $rule->{body} ) {
+        my $url = $item->link;
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    my $dom = $res->dom;
+                    my $html;
+                    if ( exists $rule->{single_page_link} ) {
+                        $self->get_single_page( $dom, $rule, $item, $cb );
+                    }
+                    elsif ( exists $rule->{next_page_link} ) {
+                        $self->get_multi_page( $dom, $rule, $item, $cb );
+                    }
+                    else {
+                        my $body = $self->get_body( $dom, $rule, $item );
+                        $item->body($body);
+                        $cb->($item);
 
-    my $url = $item->link;
-    $self->ua->get(
-        $url,
-        sub {
-            my ( $ua, $tx ) = @_;
-
-            if ( my $res = $tx->success ) {
-
-                my $dom = $res->dom;
-                my $html;
-                if ( exists $rule->{single_page_link} ) {
-                    $self->get_single_page( $dom, $rule, $item, $cb );
-                }
-                elsif ( exists $rule->{next_page_link} ) {
-                    $self->get_multi_page( $dom, $rule, $item, $cb );
-
-                }
-                else {
-                    my $body = $self->get_body( $dom, $rule, $item );
-                    $item->body($body);
-                    $cb->($item);
-
-                }
-
+                    }
                 #$html = $self->resolve_link( $html, $tx->req->url );
                 #$item->body($html);
-            }
-        }
-    );
+                }
+       });
+    } else {
+        $cb->($item);
+    }
     return;
 }
 
