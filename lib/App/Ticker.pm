@@ -4,6 +4,7 @@ use Moo;
 use App::Ticker::Item;
 use Path::Tiny;
 use Scalar::Util qw(blessed);
+use Try::Tiny;
 
 use EV;
 use AnyEvent;
@@ -78,7 +79,14 @@ sub filter_callback {
 			if ( !@filter ) {
 				$cb = sub { $cv->end };
 			}
-			$plugin->process_item($item,$cb);	
+			try {
+				$plugin->process_item( $item, $cb );
+			}
+			catch {
+				chomp;
+				warn "$_\n";
+				$cv->end;
+			};
 		};
 	};
 }
