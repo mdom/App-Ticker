@@ -76,6 +76,10 @@ sub filter_callback {
 		my $cb; $cb = sub {
 			my $item = shift;
 			my $plugin = shift @filter;
+			if ( not defined $item ) {
+				$cv->end;
+				return;
+			}
 			if ( !@filter ) {
 				$cb = sub { $cv->end };
 			}
