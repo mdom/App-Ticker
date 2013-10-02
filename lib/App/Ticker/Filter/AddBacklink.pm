@@ -8,10 +8,10 @@ has text => (
 );
 
 sub process_item {
-	my ($self,$item) = @_;
+	my ($self,$item,$cb) = @_;
 	my $backlink = sprintf('<div><a href="%s">%s</a></div>',$item->link,$self->text);
 	$item->body($item->body . $backlink);
-
+	$cb->($item);
 	return;
 }
 
