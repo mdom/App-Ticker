@@ -18,6 +18,11 @@ sub process_item {
                 if ( my $res = $tx->success ) {
                     my $dom = $res->dom;
                     my $html;
+                    my $cb = sub { 
+                        my $item = shift;
+                        $self->resolve_link( $item, $tx->req->url );
+                        $cb->($item);
+                    };
                     if ( exists $rule->{single_page_link} ) {
                         $self->get_single_page( $dom, $rule, $item, $cb );
                     }
@@ -30,8 +35,6 @@ sub process_item {
                         $cb->($item);
 
                     }
-                #$html = $self->resolve_link( $html, $tx->req->url );
-                #$item->body($html);
                 }
        });
     } else {
@@ -117,9 +120,9 @@ sub get_body {
 }
 
 sub resolve_link {
-    my ( $self, $html, $base ) = @_;
+    my ( $self, $item, $base ) = @_;
     $base = Mojo::URL->new($base);
-    my $dom   = Mojo::DOM->new($html);
+    my $dom   = Mojo::DOM->new($item->body);
     my %types = (
         a   => 'href',
         img => 'src',
@@ -130,7 +133,8 @@ sub resolve_link {
         next if $url->is_abs;
         $element->attr( $attr => $url->base($base)->to_abs );
     }
-    return $dom->to_xml;
+    $item->body($dom->to_xml)
+    return;
 }
 
 1;
