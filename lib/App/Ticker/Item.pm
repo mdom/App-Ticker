@@ -8,7 +8,7 @@ use Mojo::ByteStream 'b';
 
 has item => (
     is      => 'ro',
-    handles => [qw(get title link guid set copyright language image)]
+    handles => [qw(get title link guid set copyright language image get_pubDate_epoch)]
 );
 
 has body => (
