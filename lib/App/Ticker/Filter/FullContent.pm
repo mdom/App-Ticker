@@ -36,6 +36,10 @@ sub process_item {
 
                     }
                 }
+		else {
+		    $cb->($item);
+                }
+		
        });
     } else {
         $cb->($item);
@@ -56,6 +60,9 @@ sub get_multi_page {
                     $item->body( $item->body . $body );
                     $self->get_multi_page( $dom, $rule, $item, $cb );
                 }
+		else {
+		    $cb->($item);
+		}
             }
         );
     }
@@ -93,8 +100,8 @@ sub get_single_page {
                 if ( my $res = $tx->success ) {
                     my $body = $self->get_body( $dom, $rule );
                     $item->body($body);
-                    $cb->($item);
                 }
+                $cb->($item);
                 return;
             }
         );
