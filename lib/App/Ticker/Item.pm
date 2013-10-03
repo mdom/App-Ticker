@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Moo;
 use XML::TreePP;
+use XML::FeedPP;
 use Mojo::ByteStream 'b';
 
 has item => (
@@ -15,6 +16,13 @@ has body => (
     lazy    => 1,
     builder => '_build_body',
 );
+
+sub BUILDARGS {
+	my ($class,%args) = @_;
+	return \%args if exists $args{item};
+	my $item = XML::FeedPP::RSS->new(@_);
+	return { item => $item };
+}
 
 has id => ( is => 'lazy', );
 
