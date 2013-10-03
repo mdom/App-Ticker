@@ -7,8 +7,7 @@ sub get_rule {
     my ($self,$item) = @_;
     my $url = $item->link
 	or return;
-    my $host     = Mojo::URL->new($url)->host
-	or return;
+    my $host     = Mojo::URL->new($url)->host || '';
     my @segments = ($host);
     my @parts    = split( /\./, $host );
     shift @parts;
