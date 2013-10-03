@@ -37,7 +37,8 @@ sub pubDate {
 }
 
 sub safe_id {
-	return b($_[0])->sha1_sum;
+	my $self = shift;
+	return b($self->id)->sha1_sum;
 }
 
 sub description {
