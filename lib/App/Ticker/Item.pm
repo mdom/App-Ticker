@@ -21,7 +21,7 @@ sub BUILDARGS {
 	my $class = shift;
 	my %args = @_;
 	return \%args if exists $args{item};
-	my $item = XML::FeedPP::RSS->new(@_);
+	my $item = XML::FeedPP::RSS::Item->new(@_);
 	return { item => $item };
 }
 
