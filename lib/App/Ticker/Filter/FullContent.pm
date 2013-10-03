@@ -1,71 +1,128 @@
 package App::Ticker::Filter::FullContent;
 use Moo;
 extends 'App::Ticker::Plugin';
-with 'App::Ticker::Role::FetchURL';
+with 'App::Ticker::Role::DomainRule', 'App::Ticker::Role::FetchURL';
 
-use Mojo::ByteStream 'b';
-use List::MoreUtils qw(uniq);
-
-has 'feeds' => (
-	is => 'rw',
-	required => 1,
-);
+use Mojo::URL;
+use Mojo::DOM;
 
 sub process_item {
-    my ( $self, $item ) = @_;
-    my $selector = $self->feeds->{$item->feed->link}->{full_content_selector};
-    if ($selector) {
-        $self->get_content( $item, $selector );
+    my ( $self, $item, $cb ) = @_;
+    my $rule = $self->get_rule($item);
+    if ( $rule and exists $rule->{body} ) {
+        my $url = $item->link;
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    my $dom = $res->dom;
+                    my $html;
+                    my $cb = sub { 
+                        my $item = shift;
+                        $self->resolve_link( $item, $tx->req->url );
+                        $cb->($item);
+                    };
+                    if ( exists $rule->{single_page_link} ) {
+                        $self->get_single_page( $dom, $rule, $item, $cb );
+                    }
+                    elsif ( exists $rule->{next_page_link} ) {
+                        $self->get_multi_page( $dom, $rule, $item, $cb );
+                    }
+                    else {
+                        my $body = $self->get_body( $dom, $rule, $item );
+                        $item->body($body);
+                        $cb->($item);
+
+                    }
+                }
+       });
+    } else {
+        $cb->($item);
     }
     return;
-};
-
-sub get_all_links {
-    my ( $response, $selector ) = @_;
-
-    my $tree =
-      HTML::TreeBuilder::XPath->new->parse( $response->decoded_content() )->eof;
-    my $xpath = HTML::Selector::XPath->new($selector)->to_xpath;
-    my @urls;
-    for my $elem ( $tree->findnodes($xpath) ) {
-        my $rel_url  = $elem->attr_get_i('href');
-        my $base_url = $response->base;
-        push @urls, URI->new_abs( $rel_url, $base_url );
-    }
-    return uniq @urls;
 }
 
-sub unpaginate {
-    my ( $ua, $url, $page_selector, $content_selector ) = @_;
-
-    my @responses;
-    push @responses, _get( $ua, $url );
-    my @urls = get_all_links( $responses[0], $page_selector );
-    for my $url (@urls) {
-        push @responses, _get( $ua, $url );
+sub get_multi_page {
+    my ( $self, $dom, $rule, $item, $cb ) = @_;
+    if ( my $url = $self->get_multi_page_link( $dom, $rule ) ) {
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    $dom = $res->dom;
+                    my $body = $self->get_body( $dom, $rule );
+                    $item->body( $item->body . $body );
+                    $self->get_multi_page( $dom, $rule, $item, $cb );
+                }
+            }
+        );
     }
-    my $content = '';
-    for my $response (@responses) {
-        $content .= filter_content( $response, $content_selector );
-    }
-    return $content;
-}
-
-sub get_content {
-    my ( $self, $item, $selector ) = @_;
-    my $tx = $self->get_url( $item->link );
-    if ( my $res = $tx->success ) {
-        my $html = $res->dom($selector)->join('')->to_string;
-        $html = $self->resolve_link( $html, $tx->req->url );
-        $item->body($html);
+    else {
+        $cb->($item);
     }
     return;
+}
+
+sub get_multi_page_link {
+    my ( $self, $dom, $rule ) = @_;
+    my $url;
+    for my $selector ( @{ $rule->{next_page_link} } ) {
+        my $link = $dom->at($selector);
+        next if !$link;
+        my $url = $link->attr('href');
+        last if $url;
+    }
+    return $url;
+}
+
+sub get_single_page {
+    my ( $self, $dom, $rule, $item, $cb ) = @_;
+    my $url;
+    for my $selector ( @{ $rule->{single_page_link} } ) {
+        my $link = $dom->at($selector);
+        $url = $link->attr('href');
+        last if $url;
+    }
+    if ($url) {
+        $self->ua->get(
+            $url,
+            sub {
+                my ( $ua, $tx ) = @_;
+                if ( my $res = $tx->success ) {
+                    my $body = $self->get_body( $dom, $rule );
+                    $item->body($body);
+                    $cb->($item);
+                }
+                return;
+            }
+        );
+    }
+    else {
+        $cb->($item);
+    }
+    return;
+}
+
+sub get_body {
+    my ( $self, $dom, $rule ) = @_;
+    if ( @{ $rule->{body} } ) {
+        for my $body ( @{ $rule->{body} } ) {
+            my $collection = $dom->find($body);
+            if ($collection) {
+                $dom = Mojo::DOM->new( $collection->join('')->to_string );
+                last;
+            }
+        }
+    }
+    return $dom->to_xml;
 }
 
 sub resolve_link {
-    my ( $self, $html, $base ) = @_;
+    my ( $self, $item, $base ) = @_;
     $base = Mojo::URL->new($base);
-    my $dom   = Mojo::DOM->new($html);
+    my $dom   = Mojo::DOM->new($item->body);
     my %types = (
         a   => 'href',
         img => 'src',
@@ -76,7 +133,8 @@ sub resolve_link {
         next if $url->is_abs;
         $element->attr( $attr => $url->base($base)->to_abs );
     }
-    return $dom->to_xml;
+    $item->body($dom->to_xml);
+    return;
 }
 
 1;
