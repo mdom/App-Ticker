@@ -65,6 +65,9 @@ sub run {
         $plugin->run($cv,$cb_factory);
     }
     $cv->recv;
+    for my $plugin ( @{ $self->output } ) {
+	$plugin->finish();
+    }
     return;
 }
 
