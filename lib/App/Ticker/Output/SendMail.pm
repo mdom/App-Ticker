@@ -2,7 +2,6 @@ package App::Ticker::Output::SendMail;
 
 use Moo;
 extends 'App::Ticker::Plugin';
-with 'App::Ticker::Role::FetchURL';
 
 use Encode;
 use MIME::Lite;
