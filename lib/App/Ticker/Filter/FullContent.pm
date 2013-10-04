@@ -98,6 +98,7 @@ sub get_single_page {
             sub {
                 my ( $ua, $tx ) = @_;
                 if ( my $res = $tx->success ) {
+                    my $dom = $res->dom;
                     my $body = $self->get_body( $dom, $rule );
                     $item->body($body);
                 }
