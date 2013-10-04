@@ -1,7 +1,7 @@
 package App::Ticker::Output::SendMail;
 
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Output';
 with 'App::Ticker::Role::FormatMail';
 
 use Encode;

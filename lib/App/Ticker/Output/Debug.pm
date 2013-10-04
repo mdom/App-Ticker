@@ -1,6 +1,6 @@
 package App::Ticker::Output::Debug;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Output';
 use Mojo::ByteStream 'b';
 use Try::Tiny;
 

@@ -1,6 +1,6 @@
 package App::Ticker::Output::Maildir;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Output';
 with 'App::Ticker::Role::FormatMail';
 
 use Mojo::ByteStream 'b';

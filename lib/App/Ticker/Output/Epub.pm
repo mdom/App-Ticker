@@ -1,6 +1,6 @@
 package App::Ticker::Output::Epub;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Output';
 
 use EBook::EPUB;
 use Template::Tiny;
@@ -9,8 +9,8 @@ use Path::Tiny;
 
 has 'output_dir' => ( is => 'rw', default => 'epub' );
 
-sub run {
-	my ($self) = @_;
+sub finish {
+	my $self = shift;
 	my @items = sort { $a->pubDate cmp $b->pubDate } @{$self->items};
 	for my $item ( @items ) {
 		$item->body(Mojo::DOM->new($item->body)->to_xml);
