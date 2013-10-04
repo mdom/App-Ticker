@@ -1,7 +1,7 @@
 package App::Ticker::Input::GetFeeds;
 
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Input';
 with 'App::Ticker::Role::FetchURL';
 
 use Mojo::ByteStream 'b';
