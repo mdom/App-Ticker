@@ -1,7 +1,7 @@
 package App::Ticker::Filter::LastDay;
 
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Filter';
 use POSIX qw(mktime);
 
 sub process_item {

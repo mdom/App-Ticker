@@ -1,6 +1,6 @@
 package App::Ticker::Filter::FullContent;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Filter';
 with 'App::Ticker::Role::DomainRule', 'App::Ticker::Role::FetchURL';
 
 use Mojo::URL;

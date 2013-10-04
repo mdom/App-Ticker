@@ -1,6 +1,6 @@
 package App::Ticker::Filter::InlineImages;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Filter';
 with 'App::Ticker::Role::FetchURL';
 
 use Mojo::ByteStream 'b';

@@ -1,6 +1,6 @@
 package App::Ticker::Filter::AddBacklink;
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Filter';
 
 has text => (
 	is => 'rw',

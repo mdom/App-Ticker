@@ -1,7 +1,7 @@
 package App::Ticker::Filter::SkipSeen;
 
 use Moo;
-extends 'App::Ticker::Plugin';
+extends 'App::Ticker::Filter';
 
 use Path::Tiny;
 use Mojo::ByteStream 'b';
