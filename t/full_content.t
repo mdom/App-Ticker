@@ -57,7 +57,7 @@ sub check_fullcontent {
     my $ua = Mojo::UserAgent->new( app => app );
     my $filter = App::Ticker::Filter::FullContent->new(
         {
-            rules => { '.' => $rules, },
+            rules => { '*' => $rules, },
             ua    => $ua,
         }
     );
