@@ -16,7 +16,7 @@ sub get_rule {
         shift @parts;
     }
     # catch-all-rule
-    push @segments,'.';
+    push @segments,'*';
 
     for my $segment (@segments) {
         if ( exists $self->rules->{$segment} ) {
