@@ -27,11 +27,18 @@ sub process_item {
                         $self->get_single_page( $dom, $rule, $item, $cb );
                     }
                     elsif ( exists $rule->{next_page_link} ) {
-                        $self->get_multi_page( $dom, $rule, $item, $cb );
+			if ( my $body = $self->get_body( $dom, $rule ) ) {
+			    $item->body( $body );
+                            $self->get_multi_page( $dom, $rule, $item, $cb );
+			}
+			else {
+			    $cb->($item);
+			}
                     }
                     else {
-                        my $body = $self->get_body( $dom, $rule, $item );
-                        $item->body($body);
+			if ( my $body = $self->get_body( $dom, $rule ) ) {
+                            $item->body($body);
+			}
                         $cb->($item);
 
                     }
@@ -56,9 +63,13 @@ sub get_multi_page {
                 my ( $ua, $tx ) = @_;
                 if ( my $res = $tx->success ) {
                     $dom = $res->dom;
-                    my $body = $self->get_body( $dom, $rule );
-                    $item->body( $item->body . $body );
-                    $self->get_multi_page( $dom, $rule, $item, $cb );
+                    if ( my $body = $self->get_body( $dom, $rule ) ) {
+			    $item->body( $item->body . $body );
+			    $self->get_multi_page( $dom, $rule, $item, $cb );
+	            }
+		    else {
+		        $cb->($item);
+		    }
                 }
 		else {
 		    $cb->($item);
@@ -78,7 +89,7 @@ sub get_multi_page_link {
     for my $selector ( @{ $rule->{next_page_link} } ) {
         my $link = $dom->at($selector);
         next if !$link;
-        my $url = $link->attr('href');
+        $url = $link->attr('href');
         last if $url;
     }
     return $url;
@@ -99,8 +110,9 @@ sub get_single_page {
                 my ( $ua, $tx ) = @_;
                 if ( my $res = $tx->success ) {
                     my $dom = $res->dom;
-                    my $body = $self->get_body( $dom, $rule );
-                    $item->body($body);
+                    if ( my $body = $self->get_body( $dom, $rule ) ) {
+                        $item->body($body);
+	            }
                 }
                 $cb->($item);
                 return;
@@ -115,16 +127,19 @@ sub get_single_page {
 
 sub get_body {
     my ( $self, $dom, $rule ) = @_;
+    my $collection;
     if ( @{ $rule->{body} } ) {
         for my $body ( @{ $rule->{body} } ) {
-            my $collection = $dom->find($body);
-            if ($collection) {
-                $dom = Mojo::DOM->new( $collection->join('')->to_string );
-                last;
-            }
+            $collection = $dom->find($body);
+            last if $collection->size;
         }
     }
-    return $dom->to_xml;
+
+    if ( $collection and $collection->size ) {
+        $dom = Mojo::DOM->new( $collection->join('')->to_string );
+        return $dom->to_xml;
+    }
+    return; 
 }
 
 sub resolve_link {
