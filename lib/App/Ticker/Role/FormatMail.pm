@@ -18,6 +18,7 @@ sub format_mail {
         To      => $self->send_mail_to,
         Subject => encode( 'MIME-Q', html_unescape( $item->title ) ),
         Type    => 'multipart/related',
+        Date    => $item->pubDate(),
     );
 
     my $body = MIME::Lite->new(
