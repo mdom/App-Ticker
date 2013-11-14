@@ -18,6 +18,7 @@ my $build = Module::Build->new(
         'Try::Tiny'        => 0,
         'XML::FeedPP'      => 0,
 	'File::Spec'       => '3.4'
+        'Email::Date::Format' => 0,
     },
 );
 $build->create_build_script;
