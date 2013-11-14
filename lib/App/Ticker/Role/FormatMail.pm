@@ -33,6 +33,7 @@ sub format_mail {
 
     $msg->add( 'User-Agent'   => 'feeder' );
     $msg->add( 'X-Ticker-URL' => $item->link );
+    $msg->add( 'X-Ticker-ID' => $item->safe_id );
 
     return $msg;
 }
