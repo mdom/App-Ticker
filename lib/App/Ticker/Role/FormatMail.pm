@@ -25,6 +25,8 @@ sub format_mail {
     my $body = MIME::Lite->new(
         Type => 'text/html',
         Data => b( $item->body )->encode(),
+        ## to cope with lines longer than 2000 charachters
+        Encoding => 'base64',
     );
 
     $body->attr( 'content-type.charset' => 'UTF8' );
