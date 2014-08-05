@@ -137,7 +137,7 @@ sub get_body {
 
     if ( $collection and $collection->size ) {
         $dom = Mojo::DOM->new( $collection->join('')->to_string );
-        return $dom->to_xml;
+        return $dom->to_string;
     }
     return; 
 }
@@ -156,7 +156,7 @@ sub resolve_link {
         next if $url->is_abs;
         $element->attr( $attr => $url->base($base)->to_abs );
     }
-    $item->body($dom->to_xml);
+    $item->body($dom->to_string);
     return;
 }
 
