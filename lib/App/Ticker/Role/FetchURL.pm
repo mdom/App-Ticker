@@ -9,8 +9,8 @@ has 'ua' => (
 
 sub _build_ua {
     return Mojo::UserAgent->new(
-        max_redirects => 5,
-        timeout       => 10
+        max_redirects   => 5,
+        request_timeout => 10,
     );
 }
 
