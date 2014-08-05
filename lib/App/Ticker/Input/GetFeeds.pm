@@ -6,6 +6,7 @@ with 'App::Ticker::Role::FetchURL';
 
 use Mojo::ByteStream 'b';
 use XML::FeedPP;
+use Try::Tiny;
 
 has 'feeds' => ( is => 'ro', );
 
@@ -19,19 +20,21 @@ sub run {
                 my ( $ua, $tx ) = @_;
                 if ( my $res = $tx->success ) {
                     if ( $res->code == 200 ) {
-                        my $feed = XML::FeedPP->new( b( $res->body )->decode );
-                        $feed->link($url);
-                        for my $item ( $feed->get_item() ) {
-                            $cb_factory->()->(
-                                App::Ticker::Item->new(
-                                    item => $item,
-                                    feed => $feed,
-                                )
-                            );
+                        my $feed = try { XML::FeedPP->new( b( $res->body )->decode ) };
+                        if ($feed) {
+                            $feed->link($url);
+                            for my $item ( $feed->get_item() ) {
+                                $cb_factory->()->(
+                                    App::Ticker::Item->new(
+                                        item => $item,
+                                        feed => $feed,
+                                    )
+                                );
+                            }
                         }
                     }
                 }
-		$cv->end;
+                $cv->end;
             }
         );
     }
