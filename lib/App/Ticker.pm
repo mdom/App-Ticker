@@ -105,7 +105,49 @@ __END__
 
 =head1 NAME
 
-App::Ticker - pluggable feedreeder
+App::Ticker - framework to fetch, filter and output rss feeds
+
+=head1 DESCRIPTION
+
+RSS Feeds are still one of the easiest ways to get news from all over
+the web. But a lot of feeds needs some proprocessing, maybe the content
+is cut off after 120 characters and you would prefer to get the full
+content or you want to strip advertisments etc. App::Ticker tries to
+provide a general framework to fetch rss feeds, filter them as you like
+and then render them with differant output modules.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item input
+
+A array reference containing either the names of a input modules or hash
+references. Each hash reference should contain one key value pair. The
+key is the name of a input module and the value is a hashref with the
+options it should be instantiated with.
+
+If the name of the input module starts with a plus sign, it is replaced
+with the string I<App::Ticker::Input::>.
+
+=item filter
+
+=item output
+
+=back
+
+=head1 METHODS
+
+=over 4
+
+=item run
+
+Calls the input modules one after the other to generate rss items. For
+every item a pipeline is constructed which calls every filter plugin
+ and renders the processed item with every provided output module.
+
+=back
+
 
 =head1 AUTHOR
 
