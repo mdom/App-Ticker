@@ -87,6 +87,10 @@ sub filter_callback {
 				$cb = sub { $cv->end };
 			}
 			try {
+				local $SIG{__WARN__} = sub {
+					my $message = shift;
+					warn "Warning while processing <" . $item->link . ">: $message\n";
+				};
 				$plugin->process_item( $item, $cb );
 			}
 			catch {
