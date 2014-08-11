@@ -5,11 +5,13 @@ with 'App::Ticker::Role::DomainRule', 'App::Ticker::Role::FetchURL';
 
 use Mojo::URL;
 use Mojo::DOM;
+use Try::Tiny;
+use HTML::ExtractMain qw( extract_main_html );
 
 sub process_item {
     my ( $self, $item, $cb ) = @_;
     my $rule = $self->get_rule($item);
-    if ( $rule and exists $rule->{body} ) {
+    if ( $rule and ( exists $rule->{body} or exists $rule->{auto} )) {
         my $url = $item->link;
         $self->ua->get(
             $url,
@@ -127,19 +129,21 @@ sub get_single_page {
 
 sub get_body {
     my ( $self, $dom, $rule ) = @_;
-    my $collection;
-    if ( @{ $rule->{body} } ) {
+    if ( $rule->{auto} ) {
+        return try { extract_main_html( $dom->to_string, output_type => 'html' ) };
+    }
+    elsif ( @{ $rule->{body} } ) {
+        my $collection;
         for my $body ( @{ $rule->{body} } ) {
             $collection = $dom->find($body);
             last if $collection->size;
         }
+        if ( $collection and $collection->size ) {
+            $dom = Mojo::DOM->new( $collection->join('')->to_string );
+            return $dom->to_string;
+        }
     }
-
-    if ( $collection and $collection->size ) {
-        $dom = Mojo::DOM->new( $collection->join('')->to_string );
-        return $dom->to_string;
-    }
-    return; 
+    return;
 }
 
 sub resolve_link {
